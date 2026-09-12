@@ -20,7 +20,7 @@ public class EventResolver {
             List<Block> blocks,
             float yield
     ) {
-        if (version[1] >= 21) {
+        if (VersionHandler.isGreaterThan1_20_5()) {
             return new EntityExplodeEvent(proj_entity, impactLoc, blocks, yield, org.bukkit.ExplosionResult.DESTROY);
         } else {
             try {
@@ -35,7 +35,7 @@ public class EventResolver {
     }
 
     public static boolean isValidExplosion(EntityExplodeEvent event) {
-        if (version[1] >= 21) {
+        if (VersionHandler.isGreaterThan1_20_5()) {
             var result = event.getExplosionResult();
             return result == org.bukkit.ExplosionResult.DESTROY || result == org.bukkit.ExplosionResult.DESTROY_WITH_DECAY;
         }
