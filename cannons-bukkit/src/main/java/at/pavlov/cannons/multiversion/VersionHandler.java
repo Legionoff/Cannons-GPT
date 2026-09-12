@@ -14,26 +14,36 @@ public final class VersionHandler {
     private VersionHandler() {}
 
     private static void initVersion() {
-        var temp = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
-        version = new int[3];
-        for (int i = 0; i < temp.length; i++) {
-            version[i] = Integer.parseInt(temp[i]);
-        }
+        // Bukkit.getBukkitVersion() changed format on modern Paper versions
+        // (e.g. 26.2.build.123-stable). Use the Minecraft version directly;
+        // Paper documents Bukkit.getMinecraftVersion() as the API for this.
+        var temp = Bukkit.getServer().getMinecraftVersion().split("\\.");
+        version = new int[] {0, 0, 0};
 
-        if (temp.length != 3) {
-            version[2] = 0;
+        for (int i = 0; i < Math.min(temp.length, version.length); i++) {
+            try {
+                version[i] = Integer.parseInt(temp[i]);
+            } catch (NumberFormatException ignored) {
+                // Keep the default value for an unexpected version component.
+            }
         }
     }
 
     public static boolean isGreaterThan1_20_5() {
+        // Minecraft changed its versioning scheme to 26.x in 2026.
+        // Any major version above 1 is newer than 1.20.5.
+        if (version[0] > 1) {
+            return true;
+        }
+
+        if (version[0] < 1) {
+            return false;
+        }
+
         if (version[1] >= 21) {
             return true;
         }
 
-        if (version[1] == 20 && version[2] >= 5) {
-            return true;
-        }
-
-        return false;
+        return version[1] == 20 && version[2] >= 5;
     }
 }
