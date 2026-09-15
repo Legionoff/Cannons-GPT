@@ -32,12 +32,12 @@ public class SimpleBlock {
         this(vect.getBlockX(), vect.getBlockY(), vect.getBlockZ(), blockData);
     }
 
-    public SimpleBlock(int x, int y, int z, Material material) {
-        this(x, y, z, material.createBlockData());
-    }
-
     private SimpleBlock(Vector vect, Material material) {
         this(vect, material.createBlockData());
+    }
+
+    public SimpleBlock(int x, int y, int z, Material material) {
+        this(x, y, z, material.createBlockData());
     }
 
     public SimpleBlock(Location loc, Material material) {
@@ -90,7 +90,30 @@ public class SimpleBlock {
      * @return true if both block match
      */
     public boolean compareMaterial(BlockData block) {
-        return block.getMaterial().equals(this.blockData.getMaterial());
+        Material expected = this.blockData.getMaterial();
+        Material actual = block.getMaterial();
+
+        if (expected.equals(actual)) {
+            return true;
+        }
+
+        // A cannon schematic normally contains AIR around the cannon. Natural
+        // grass/fern vegetation occupying those air positions must not prevent
+        // the multiblock from being recognised. This is especially important on
+        // modern Paper versions where grass uses separate block materials.
+        if (expected.isAir()) {
+            return isNaturalVegetation(actual);
+        }
+
+        return false;
+    }
+
+    private static boolean isNaturalVegetation(Material material) {
+        return switch (material.name()) {
+            case "SHORT_GRASS", "TALL_GRASS", "FERN", "LARGE_FERN",
+                 "DEAD_BUSH", "TALL_DRY_GRASS", "SHORT_DRY_GRASS" -> true;
+            default -> false;
+        };
     }
 
     /**
@@ -113,8 +136,8 @@ public class SimpleBlock {
 
     /**
      * shifts the location of the block without comparing the id
-     * @param vect offset vector
-     * @return a new block with a shifted location
+     * @param vect location to add
+     * @return new Simpleblock
      */
     public SimpleBlock add(Vector vect) {
         return new SimpleBlock(toVector().add(vect), this.blockData);
@@ -123,7 +146,7 @@ public class SimpleBlock {
     /**
      * shifts the location of the block without comparing the id
      * @param vect vector to subtract
-     * @return new block with new subtracted location
+     * @return new SimpleBlock
      */
     public SimpleBlock subtract(Vector vect) {
         return new SimpleBlock(vect.getBlockX() - locX, vect.getBlockY() - locY, vect.getBlockZ() - locZ, this.blockData);
